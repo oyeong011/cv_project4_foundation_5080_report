@@ -2,23 +2,23 @@
 
 생성일: 2026-05-30
 
-## 결론 먼저: 무엇을 적용했고 무엇을 측정했는가
+## 연구 요약
 
-- **적용한 것:** RTX 5080 로컬 환경에서 GroundingDINO open-vocabulary detector, OWLv2 zero-shot fallback detector, YOLOv8-seg fine-tuned weight의 prediction-only baseline, HSV 기반 디스펜서 색상/순서 추정, 컵 중심/상단/조작 후보점 계산을 실제 test 43장에 적용했다.
-- **실제로 나온 산출물:** GroundingDINO 계열 282개 box/mask row, OWLv2 203개 row, YOLO baseline prediction-only 12개 row, cup geometry 57개 row, dispenser color/order 368개 row, remove_candidate 485개 row를 생성했다.
-- **성능 측정으로 인정할 수 있는 것:** GT 없이도 측정 가능한 image coverage, prediction count, confidence distribution, latency, downstream feature 생성 여부를 표로 기록했다. 또한 수동 GT 10~20장만 추가하면 precision/recall/F1/AP50/AP50-95를 계산하는 manual subset 평가 도구를 만들었다.
-- **성능 측정으로 주장하지 않는 것:** 현재 `labels/train|val|test`에는 YOLO `.txt` GT가 없으므로 supervised precision/recall/mAP50/mAP50-95와 mask IoU는 계산하지 않았다. 이 값을 임의로 만들지 않고 `not measured`로 둔다.
-- **SAM2에 대한 정직한 해석:** SAM2 predictor import는 확인했지만 predictor load에서 CUDA OOM이 발생했다. 따라서 이번 CSV의 mask는 실제 SAM2 segmentation mask가 아니라 box-mask fallback이며, 보고서에서 `sam2_real_masks=0`, `box_fallback_masks=282/203`으로 분리했다.
-- **Qwen2.5-VL에 대한 정직한 해석:** Qwen2.5-VL은 보조 VLM 실험으로 시도했지만 parsed row가 0개라 성공 결과가 아니라 실패 사례/한계로 기록했다.
-- **로봇 안전 범위:** 이 프로젝트는 perception CSV와 시각화만 생성하며, 로봇 제어/하드웨어 제어 코드는 포함하지 않는다.
+- **적용 내용:** RTX 5080 로컬 환경에서 GroundingDINO open-vocabulary detector, OWLv2 zero-shot fallback detector, YOLOv8-seg fine-tuned weight의 prediction-only baseline, HSV 기반 디스펜서 색상/순서 추정, 컵 중심/상단/조작 후보점 계산을 실제 test 43장에 적용했다.
+- **생성 산출물:** GroundingDINO 계열 282개 box/mask row, OWLv2 203개 row, YOLO baseline prediction-only 12개 row, cup geometry 57개 row, dispenser color/order 368개 row, remove_candidate 485개 row를 생성했다.
+- **측정 가능 지표:** GT 없이도 측정 가능한 image coverage, prediction count, confidence distribution, latency, downstream feature 생성 여부를 표로 기록했다. 또한 수동 GT 10~20장만 추가하면 precision/recall/F1/AP50/AP50-95를 계산하는 manual subset 평가 도구를 만들었다.
+- **GT 부재로 산출하지 않은 지표:** 현재 `labels/train|val|test`에는 YOLO `.txt` GT가 없으므로 supervised precision/recall/mAP50/mAP50-95와 mask IoU는 계산하지 않았다. 이 값을 임의로 만들지 않고 `not measured`로 둔다.
+- **SAM2 실행 결과 해석:** SAM2 predictor import는 확인했지만 predictor load에서 CUDA OOM이 발생했다. 따라서 이번 CSV의 mask는 실제 SAM2 segmentation mask가 아니라 box-mask fallback이며, 보고서에서 `sam2_real_masks=0`, `box_fallback_masks=282/203`으로 분리했다.
+- **Qwen2.5-VL 실행 결과 해석:** Qwen2.5-VL은 보조 VLM 실험으로 시도했지만 parsed row가 0개라 성공 결과로 해석하지 않고 보조 실험의 한계로 기록했다.
+- **실험 범위:** 이 프로젝트는 perception CSV와 시각화만 생성하며, 로봇 제어/하드웨어 제어 코드는 포함하지 않는다.
 
-## 교수님 검증 포인트에 대한 답변
+## 방법론 선택 근거 및 평가 범위
 
-1. **왜 GroundingDINO인가?** 텍스트 프롬프트로 `cup`, `lid`, `dispenser` 같은 open-vocabulary 객체 후보를 찾는 목적이므로 fine-tuning 없이 탐지하는 foundation detector가 필요했다.
-2. **왜 SAM2인가?** box prompt로 mask를 생성해 bbox 중심보다 나은 컵 geometry를 얻는 것이 원래 목적이었다. 다만 이번 실행에서는 OOM 때문에 fallback을 사용했으므로 SAM2 성능으로 과장하지 않았다.
-3. **왜 OWLv2인가?** GroundingDINO가 실패하거나 prompt/threshold에 민감할 때 비교 가능한 zero-shot detection fallback으로 사용했다.
-4. **왜 Qwen2.5-VL은 보조인가?** VLM JSON 출력은 재현성과 bbox metric 안정성이 detector보다 낮으므로 정량 detector가 아니라 색상/순서/설명 보조 가능성만 확인하는 위치로 두었다.
-5. **왜 mAP가 없는가?** 평가 코드가 없는 것이 아니라, 현재 데이터셋에 GT `.txt` 파일이 없어서 예측-정답 매칭 자체가 불가능하다. 대신 label/weight 진단 CSV와 manual GT subset 평가 도구를 추가했다.
+1. **GroundingDINO 적용 근거:** 텍스트 프롬프트로 `cup`, `lid`, `dispenser` 같은 open-vocabulary 객체 후보를 찾는 목적이므로 fine-tuning 없이 탐지하는 foundation detector가 필요했다.
+2. **SAM2 적용 근거:** box prompt로 mask를 생성해 bbox 중심보다 나은 컵 geometry를 얻는 것이 원래 목적이었다. 다만 이번 실행에서는 OOM 때문에 fallback을 사용했으므로 SAM2 성능으로 과장하지 않았다.
+3. **OWLv2 fallback 적용 근거:** GroundingDINO가 실패하거나 prompt/threshold에 민감할 때 비교 가능한 zero-shot detection fallback으로 사용했다.
+4. **Qwen2.5-VL 보조 실험 설정 근거:** VLM JSON 출력은 재현성과 bbox metric 안정성이 detector보다 낮으므로 정량 detector가 아니라 색상/순서/설명 보조 가능성만 확인하는 위치로 두었다.
+5. **GT 기반 mAP 미산출 사유:** 평가 코드가 없는 것이 아니라, 현재 데이터셋에 GT `.txt` 파일이 없어서 예측-정답 매칭 자체가 불가능하다. 대신 label/weight 진단 CSV와 manual GT subset 평가 도구를 추가했다.
 
 ## 1. 실험 개요
 
