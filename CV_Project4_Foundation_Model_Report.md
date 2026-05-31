@@ -1,8 +1,8 @@
 # CV Project #4: Foundation Model 기반 칵테일 로봇 물체 인식 및 조작 후보점 추정 실험
 
-생성일: 2026-05-30
+생성일: 2026-05-31
 
-## 연구 요약
+## 요약
 
 - **적용 내용:** RTX 5080 로컬 환경에서 GroundingDINO open-vocabulary detector, OWLv2 zero-shot fallback detector, YOLOv8-seg fine-tuned weight의 prediction-only baseline, HSV 기반 디스펜서 색상/순서 추정, 컵 중심/상단/조작 후보점 계산을 실제 test 43장에 적용했다.
 - **생성 산출물:** GroundingDINO 계열 282개 box/mask row, OWLv2 203개 row, YOLO baseline prediction-only 12개 row, cup geometry 57개 row, dispenser color/order 368개 row, remove_candidate 485개 row를 생성했다.
